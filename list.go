@@ -6,6 +6,7 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -13,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"golang.org/x/mod/modfile"
 
 	pathpkg "path"
 )
@@ -216,6 +219,32 @@ func findDirForPath(path string, ip *build.Package) (string, error) {
 		fi, err := stat(dir)
 		if err == nil && fi.IsDir() {
 			return dir, nil
+		}
+	}
+
+	parts := strings.Split(path,"/")
+
+	checkpath := filepath.Join(build.Default.GOPATH,"src")
+	for _, part := range parts {
+		checkpath = filepath.Join(checkpath,part)
+		modpath := filepath.Join(checkpath,"go.mod")
+		fi, err := stat(modpath)
+		if err==nil && !fi.IsDir() {
+			bs, err := ioutil.ReadFile(modpath)
+			if err != nil {
+				return "", err
+			}
+			mf, err := modfile.ParseLax(modpath,bs, nil)
+			if err != nil {
+				return "", err
+			}
+			if len(mf.Module.Mod.Path) <= len(path) && path[:len(mf.Module.Mod.Path)] == mf.Module.Mod.Path {
+				dir := checkpath + path[len(mf.Module.Mod.Path):]
+				fi, err := stat(dir)
+				if err == nil && fi.IsDir() {
+					return dir, nil
+				}
+			}
 		}
 	}
 
