@@ -66,7 +66,7 @@ func runRestore(cmd *Command, args []string) {
 		}
 	}
 	checkErr("Error restoring some deps. Aborting check.")
-	for _, dep := range g.Deps {
+	/*for _, dep := range g.Deps {
 		verboseln("Checking dependency:", dep.ImportPath)
 		_, err := LoadPackages(dep.ImportPath)
 		if err != nil {
@@ -78,7 +78,7 @@ func runRestore(cmd *Command, args []string) {
 			hadError = true
 		}
 	}
-	checkErr("Error checking some deps.")
+	checkErr("Error checking some deps.")*/
 }
 
 var downloaded = make(map[string]bool)
